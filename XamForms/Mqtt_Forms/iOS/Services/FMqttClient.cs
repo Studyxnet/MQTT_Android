@@ -2,6 +2,7 @@
 using uPLibrary.Networking.M2Mqtt;
 using uPLibrary.Networking.M2Mqtt.Messages;
 using Mqtt_Forms.iOS;
+using System.Linq;
 
 [assembly: Xamarin.Forms.Dependency (typeof(FMqttClient))]
 namespace Mqtt_Forms.iOS
@@ -11,6 +12,11 @@ namespace Mqtt_Forms.iOS
 		public MqttClient client {
 			get;
 			set;
+		}
+
+		public Action acao { 
+			get;
+			set; 
 		}
 
 		public FMqttClient ()
@@ -25,7 +31,7 @@ namespace Mqtt_Forms.iOS
 
 				client = new MqttClient (server);
 
-				client.MqttMsgPublishReceived += client_MqttMsgPublishReceived;
+
 
 				string clientId = Guid.NewGuid ().ToString ();
 				client.Connect (clientId);
@@ -39,12 +45,47 @@ namespace Mqtt_Forms.iOS
 
 		void client_MqttMsgPublishReceived (object sender, MqttMsgPublishEventArgs e)
 		{
-			// handle message received
+			if (e.Message.Any ())
+				Xamarin.Forms.MessagingCenter.Send<byte[]> (e.Message, e.Topic);
+			
 		}
 
 		public void Publish (string service, byte[] command)
 		{
-			client.Publish (service, command);
+
+			if (client.IsConnected)
+				client.Publish (service, command);
+			else
+				throw new Exception ("Client isn't connected");
+		}
+
+
+		public void Subscribe (string[] topics)
+		{
+			client.Subscribe (topics,
+				new byte[] { 
+					MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE 
+				});
+
+			client.MqttMsgPublishReceived += client_MqttMsgPublishReceived;
+			client.MqttMsgSubscribed += Client_MqttMsgSubscribed;
+			client.MqttMsgUnsubscribed += Client_MqttMsgUnsubscribed;
+			client.MqttMsgPublished += Client_MqttMsgPublished;
+		}
+
+		void Client_MqttMsgPublished (object sender, MqttMsgPublishedEventArgs e)
+		{
+			
+		}
+
+		void Client_MqttMsgUnsubscribed (object sender, MqttMsgUnsubscribedEventArgs e)
+		{
+			
+		}
+
+		void Client_MqttMsgSubscribed (object sender, MqttMsgSubscribedEventArgs e)
+		{
+			
 		}
 
 		#endregion

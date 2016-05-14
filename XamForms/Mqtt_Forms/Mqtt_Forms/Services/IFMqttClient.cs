@@ -4,7 +4,8 @@ using Xamarin.Forms;
 namespace Mqtt_Forms
 {
 
-	public class MyCustomEntry : Xamarin.Forms.View {
+	public class MyCustomEntry : Xamarin.Forms.View
+	{
 		
 		public string MeuTexto {
 			get;
@@ -23,6 +24,10 @@ namespace Mqtt_Forms
 		void Connect (string server);
 
 		void Publish (string service, byte[] command);
+
+		void Subscribe (string[] topics);
+
+
 	}
 }
 

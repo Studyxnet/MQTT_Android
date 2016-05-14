@@ -66,13 +66,33 @@ namespace Mqtt_Forms
 			var strValue = cmdE.Text;
 
 			client.Connect (cmdS.Text);
-			client.Publish (cmdT.Text, Encoding.UTF8.GetBytes (strValue));
+			if (!string.IsNullOrEmpty (strValue))
+				client.Publish (cmdT.Text, Encoding.UTF8.GetBytes (strValue));
+
+			var topics = new string[] { 
+				cmdT.Text
+			};
+
+			foreach (var item in topics) {
+				Xamarin.Forms.MessagingCenter.Subscribe<byte[]> (this, item, (t) => myByteAction (t));
+			}
+
+			client.Subscribe (topics);
 		}
 		//
 		//		void client_MqttMsgPublishReceived (object sender, MqttMsgPublishEventArgs e)
 		//		{
 		//			// handle message received
 		//		}
+
+		public void myByteAction (byte[] byts)
+		{
+			var msg = Encoding.UTF8.GetString (byts, 0, byts.Length);
+			Device.BeginInvokeOnMainThread (() => {
+				System.Diagnostics.Debug.WriteLine ("Mensagem recebida da IoT" + msg);
+			});
+
+		}
 
 		protected override void OnStart ()
 		{
