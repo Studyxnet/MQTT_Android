@@ -70,11 +70,11 @@ namespace Mqtt_Forms
 				client.Publish (cmdT.Text, Encoding.UTF8.GetBytes (strValue));
 
 			var topics = new string[] { 
-				cmdT.Text
+				Constants.GeneralTopic
 			};
 
 			foreach (var item in topics) {
-				Xamarin.Forms.MessagingCenter.Subscribe<byte[]> (this, item, (t) => myByteAction (t));
+				Xamarin.Forms.MessagingCenter.Subscribe<MqqtReceived> (this, item, (t) => myByteAction (t));
 			}
 
 			client.Subscribe (topics);
@@ -85,11 +85,22 @@ namespace Mqtt_Forms
 		//			// handle message received
 		//		}
 
-		public void myByteAction (byte[] byts)
+		public void myByteAction (MqqtReceived ReceivedObject)
 		{
-			var msg = Encoding.UTF8.GetString (byts, 0, byts.Length);
+			var msg = Encoding.UTF8.GetString (ReceivedObject.Message, 0, ReceivedObject.Message.Length);
 			Device.BeginInvokeOnMainThread (() => {
-				System.Diagnostics.Debug.WriteLine ("Mensagem recebida da IoT" + msg);
+				switch (ReceivedObject.Topic) {
+				case Constants.GeneralTopic:
+					//JsonConvert to Object
+					var surf = Newtonsoft.Json.JsonConvert.DeserializeObject<Surfboard> (msg);
+					System.Diagnostics.Debug.WriteLine (surf);
+					break;
+				default:
+					System.Diagnostics.Debug.WriteLine ("Mensagem recebida da IoT: " + msg);	
+					break;
+				}
+
+
 			});
 
 		}

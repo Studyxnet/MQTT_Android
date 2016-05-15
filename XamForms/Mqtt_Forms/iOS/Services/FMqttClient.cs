@@ -14,9 +14,9 @@ namespace Mqtt_Forms.iOS
 			set;
 		}
 
-		public Action acao { 
+		public string Broker {
 			get;
-			set; 
+			set;
 		}
 
 		public FMqttClient ()
@@ -31,10 +31,10 @@ namespace Mqtt_Forms.iOS
 
 				client = new MqttClient (server);
 
-
-
 				string clientId = Guid.NewGuid ().ToString ();
 				client.Connect (clientId);
+
+				Broker = server;
 
 
 			}//catch(uPLibrary.Exception.ser
@@ -45,9 +45,16 @@ namespace Mqtt_Forms.iOS
 
 		void client_MqttMsgPublishReceived (object sender, MqttMsgPublishEventArgs e)
 		{
-			if (e.Message.Any ())
-				Xamarin.Forms.MessagingCenter.Send<byte[]> (e.Message, e.Topic);
-			
+			if (e.Message.Any ()) {
+				var receive = new MqqtReceived () {
+					Broker = Broker,
+					Topic = e.Topic,
+					Message = e.Message
+				};
+
+				Xamarin.Forms.MessagingCenter.Send<MqqtReceived> (receive, e.Topic);
+			}
+
 		}
 
 		public void Publish (string service, byte[] command)
